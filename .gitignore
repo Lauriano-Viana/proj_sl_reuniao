@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+pip-selfcheck.json
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+.env
+.DS_Store
+
+# Streamlit specific
+.streamlit/secrets.toml
+.streamlit/config.toml
+*.tmp
+*.log
