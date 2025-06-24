@@ -10,7 +10,6 @@ from streamlit_calendar import calendar
 import uuid
 
 # --- CONFIGURAÇÕES E INICIALIZAÇÃO ---
-
 st.set_page_config(
     page_title="Agendamento de Sala de Reunião",
     page_icon="📅",
@@ -23,30 +22,24 @@ try:
     EMAIL_SENDER = st.secrets["EMAIL_SENDER"]
     EMAIL_PASSWORD = st.secrets["EMAIL_PASSWORD"]
     GSHEET_URL = st.secrets["GSHEET_URL"]
-    # Usar o dicionário completo das credenciais do secrets
-    google_credentials = st.secrets["google_credentials"]
+    
+    # MUITO IMPORTANTE: Carrega as credenciais do Google a partir da estrutura de dicionário nos segredos
+    google_credentials_dict = st.secrets["google_credentials"]
 
-except FileNotFoundError:
-    st.error("Arquivo de segredos (secrets.toml) não encontrado. Por favor, configure-o.")
+except (FileNotFoundError, KeyError) as e:
+    st.error(f"Erro ao carregar os segredos. Verifique a configuração no Streamlit Community Cloud. Erro: {e}")
     st.stop()
-except KeyError as e:
-    st.error(f"Chave de segredo não encontrada: {e}. Verifique seu arquivo secrets.toml.")
-    st.stop()
-
 
 # Autenticação com Google Sheets
-scopes = ["https://www.googleapis.com/auth/spreadsheets"]
-creds = Credentials.from_service_account_info(google_credentials, scopes=scopes)
-client = gspread.authorize(creds)
-
 try:
+    scopes = ["https://www.googleapis.com/auth/spreadsheets"]
+    creds = Credentials.from_service_account_info(google_credentials_dict, scopes=scopes) # MUDANÇA AQUI
+    client = gspread.authorize(creds)
+
     spreadsheet = client.open_by_url(GSHEET_URL)
-    sheet = spreadsheet.worksheet("Agendamentos") # Nome da aba na planilha
-except gspread.exceptions.SpreadsheetNotFound:
-    st.error("Planilha não encontrada. Verifique a URL em seu secrets.toml.")
-    st.stop()
-except gspread.exceptions.WorksheetNotFound:
-    st.error("Aba 'Agendamentos' não encontrada na planilha. Por favor, crie-a.")
+    sheet = spreadsheet.worksheet("Agendamentos")
+except Exception as e:
+    st.error(f"Não foi possível conectar ao Google Sheets. Verifique suas credenciais e a URL da planilha. Erro: {e}")
     st.stop()
 
 # --- FUNÇÕES AUXILIARES ---
